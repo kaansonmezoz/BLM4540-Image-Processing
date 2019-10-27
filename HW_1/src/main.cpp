@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <limits.h>
 
 using namespace cv;
 
@@ -10,6 +11,7 @@ typedef struct image Image;
 typedef struct arguments Arguments;
 typedef struct nodePixel NodePixel; 
 typedef struct cluster Cluster;
+typedef struct center Center;
 
 struct arguments{
     char *imagePath;
@@ -36,12 +38,13 @@ struct nodePixel{
 struct cluster{ // bu cluster'daki elemanların hepsi merkezdeki renk ile ifade edilecek bunu unutmamak lazim !!
     NodePixel *root;
     int size;
+    Center center;
+};
 
-    struct center{
-        int red;
-        int green;
-        int blue;
-    }center;
+struct center{
+    double red;
+    double green;
+    double blue;
 };
 
 Arguments getArguments(int, char **);
@@ -55,6 +58,8 @@ void segmentImage(Image *image, int);
 Cluster **initializeClusters(int);
 Cluster *createCluster(int);
 void nullCheck(void *);
+double calculateEuclideanDistance(Center, Pixel);
+int findClusterForPixel(Cluster **, int, Pixel);
 
 const uchar  MAX_COLOR_VALUE = 255;
 
@@ -138,11 +143,22 @@ Image *imageToMatrix(char *imagePath){
 
 Image *createPixelMatrix(Mat img){
     Image *image = (Image *) malloc(sizeof(Image));
+    
+    nullCheck(image);
+
     image->rowCount = img.rows;
     image->columnCount = img.cols;
     image->pixels = extractPixels(img);
     
     return image;
+}
+
+void nullCheck(void *variable){
+    if(variable == NULL){
+        printf("\nVariable is null !");
+        printf("\nNot enough memory !");    
+        exit(EXIT_FAILURE);
+    }
 }
 
 Pixel **extractPixels(Mat image){
@@ -173,12 +189,23 @@ Pixel **allocatePixelMatrix(int height, int width){
 }
 
 void segmentImage(Image *image, int k){
-    // k-means algorithm icin fonksiyon cagirilmali
+    clusterPixelsByColor(image, k);
     // ardindan da labelling kısmi yapılmalı
 }
 
-void clusterPixelsByColor(Pixel **pixels, int k){
+void clusterPixelsByColor(Image *image, int k){
+    int clusterIndex, i, j;
+    Pixel *pixel;
+
     Cluster **clusters = initializeClusters(k);
+
+    for(i = 0; i < image->rowCount; i++){
+        for(j = 0; j < image->columnCount; j++){
+            pixel = &(image->pixels[i][j]);
+            clusterIndex = findClusterForPixel(clusters, k, *pixel);        
+            addPixelToTheCluster(clusters[clusterIndex], pixel);
+        }
+    }
 }
 
 Cluster **initializeClusters(int k){
@@ -186,11 +213,11 @@ Cluster **initializeClusters(int k){
     nullCheck(clusters);
 
     int inc = MAX_COLOR_VALUE / k;
-    int value = -inc;
+    int value = 0;
 
-    for(int i = 0; i < k; i++){
-        value += inc;
+    for(int i = 0; i < k; i++){        
         clusters[i] = createCluster(value);
+        value += inc;
     }
 
     return clusters;
@@ -201,7 +228,7 @@ Cluster *createCluster(int value){
     nullCheck(cluster);
 
     cluster->root = NULL;
-    cluster->size = 0;
+    cluster->size = 1;
     cluster->center.red = value;
     cluster->center.green = value;
     cluster->center.blue = value;
@@ -209,10 +236,56 @@ Cluster *createCluster(int value){
     return cluster;   
 }
 
-void nullCheck(void *variable){
-    if(variable == NULL){
-        printf("\nVariable is null !");
-        printf("\nNot enough memory !");    
-        exit(EXIT_FAILURE);
+int findClusterForPixel(Cluster **clusters, int k, Pixel pixel){
+    long double distanceToCenter = 0;
+    int closestCluster = -1;
+    long double minDistance = INT_MAX;
+
+    for(int i = 0; i < k; i++){
+        distanceToCenter = calculateEuclideanDistance(clusters[i]->center, pixel);
+
+        if(minDistance >= distanceToCenter){
+            closestCluster = i;
+            minDistance = distanceToCenter;
+        }
     }
+
+    return closestCluster;
 }
+
+double calculateEuclideanDistance(Center center, Pixel pixel){
+    double redDistance = center.red - pixel.red;
+    double greenDistance = center.green - pixel.green;
+    double blueDistance = center.blue - pixel.blue;
+
+    return sqrt((redDistance * redDistance) + 
+                (greenDistance * greenDistance) + 
+                (blueDistance * blueDistance)
+    );
+}
+
+void addPixelToTheCluster(Cluster *cluster, Pixel *pixel){
+    NodePixel *node = (NodePixel *) malloc(sizeof(NodePixel));
+    nullCheck(node);
+    node->pixel = pixel;
+
+    NodePixel *root = cluster->root;
+    cluster->root = node;
+    node->next = root;
+
+    updateClusterCenter(cluster, pixel);
+}
+
+void updateClusterCenter(Cluster *cluster, Pixel *pixel){    
+    double totalRed = (cluster->center.red * cluster->size);
+    double totalGreen = (cluster->center.green * cluster->size);
+    double totalBlue = (cluster->center.blue * cluster->size);
+    
+    cluster->size++;
+
+    cluster->center.red = (totalRed + pixel->red) / cluster->size;
+    cluster->center.green = (totalGreen + pixel->green) / cluster->size;
+    cluster->center.blue = (totalBlue + pixel->blue) / cluster->size;
+}
+
+//TODO: free kısımları var bunları atlamamak lazim
