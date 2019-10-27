@@ -52,6 +52,9 @@ Image *createPixelMatrix(Mat);
 Pixel ** extractPixels(Mat);
 Pixel **allocatePixelMatrix(int, int);
 void segmentImage(Image *image, int);
+Cluster **initializeClusters(int);
+Cluster *createCluster(int);
+void nullCheck(void *);
 
 const uchar  MAX_COLOR_VALUE = 255;
 
@@ -159,9 +162,11 @@ Pixel **extractPixels(Mat image){
 
 Pixel **allocatePixelMatrix(int height, int width){
     Pixel **pixels = (Pixel **) malloc(height * sizeof(Pixel *));
+    nullCheck(pixels);
 
     for(int i = 0; i < height; i++){
         pixels[i] = (Pixel *) malloc(width * sizeof(Pixel));
+        nullCheck(pixels[i]);
     }
 
     return pixels;
@@ -178,6 +183,7 @@ void clusterPixelsByColor(Pixel **pixels, int k){
 
 Cluster **initializeClusters(int k){
     Cluster **clusters = (Cluster **) malloc(sizeof(Cluster *) * k);
+    nullCheck(clusters);
 
     int inc = MAX_COLOR_VALUE / k;
     int value = -inc;
@@ -192,7 +198,8 @@ Cluster **initializeClusters(int k){
 
 Cluster *createCluster(int value){
     Cluster *cluster = (Cluster *) malloc(sizeof(Cluster));
-    
+    nullCheck(cluster);
+
     cluster->root = NULL;
     cluster->size = 0;
     cluster->center.red = value;
@@ -200,4 +207,12 @@ Cluster *createCluster(int value){
     cluster->center.blue = value;
 
     return cluster;   
+}
+
+void nullCheck(void *variable){
+    if(variable == NULL){
+        printf("\nVariable is null !");
+        printf("\nNot enough memory !");    
+        exit(EXIT_FAILURE);
+    }
 }
