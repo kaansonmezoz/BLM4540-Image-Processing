@@ -1,3 +1,4 @@
 .vscode/
 libraries/
 */src/*.out
+HW_2/src/__pycache__/
