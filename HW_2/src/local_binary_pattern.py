@@ -33,9 +33,8 @@ def add_pixel_to_histogram(histogram, image, row, column):
 
 
 ## Happy path burası uç durumları düşünmek lazım ...
-## Yani diyelim ki center pixel ya da center alacak pixel'in sol tarafında herhangi bir şey yok o zaman ne yapacağız ?
-    
-
+## Yani diyelim ki center pixel ya da center alacak pixel'in sol
+## tarafında herhangi bir şey yok o zaman ne yapacağız ?    
     
 """
         
@@ -97,7 +96,7 @@ def generate_binary_encoding(neighbour_pixels, center_pixel):
     return {'red': red_encoding, 'blue': blue_encoding, 'green': green_encoding}
     
 def compare_neighbour_to_center(neighbour, center):
-     return "1" if center["red"] >= neighbour["red"]     else "0",
+     return "1" if center["red"] >= neighbour["red"]  else "0",
      "1" if center["green"] >= neighbour["green"] else "0",
      "1" if center["blue"] >= neighbour["blue"]   else "0"
            
