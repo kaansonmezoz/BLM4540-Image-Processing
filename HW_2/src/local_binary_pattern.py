@@ -2,15 +2,44 @@
 def generate_lbp_histogram(image, row_count, column_count):
     histogram = init_histogram()    
     
-    for i in range(row_count):
-        for j in range(column_count):
-            add_pixel_to_histogram(histogram, image, i, j)
+    for i in range(row_count - 2):
+        for j in range(column_count - 2):
+            center_row = i + 1
+            center_column = j + 1
+            add_pixel_to_histogram(histogram, image, center_row, center_column)
     
     ## Hala uç caseleri dusunmedim
     ## Bunun dışında normalizasyon işlemi yapılması gerekiyor 
+    ## row_count - 2 'ye kadar gidilecek i ile yani max(i) = row_count - 3
+    ## i, i+1, i+2 olacak (row_count-3, row_count-2, row_count-1)
+    ## column_count - 2'ye kadar gidilecek, j ile yani max(j) = column_count - 3
+    ## j, j+1, j+2 olacak (column_count-3, column_count-2, column_count-1)
     
     return histogram
-            
+    
+
+"""
+
+                     
+    0,1,2,3,4,5,6,7,8,9
+   0
+   1
+   2
+   3
+   4
+   5
+   6
+   7
+   8
+   9
+    
+
+
+"""
+
+
+
+        
 
 def init_histogram():
     red, green, blue = [0] * 256, [0] * 256, [0] * 256     
@@ -23,7 +52,7 @@ def get_pixel(image ,row, column):
     return {'red': red, 'green': green, 'blue': blue}
 
 def add_pixel_to_histogram(histogram, image, row, column):
-    center_pixel = get_pixel(image, row, column)
+    center_pixel = get_pixel(image, row + 1, column + 1)
     neighbours = extract_neighbour_pixels(image, row, column)
     encoding = generate_binary_encoding(neighbours, center_pixel)
     red, green, blue = binary_encoding_to_int(encoding)
