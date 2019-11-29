@@ -28,14 +28,14 @@ import json
 """
 
 
-def extract_histograms(source_path, destination_path):
+def extract_histograms(source_path, destination_folder, file_name = "histograms.json"):
     image_histograms = create_histograms_for_all_images(source_path)
     
-    if not os.path.exists(destination_path):
-        os.makedirs(destination_path)
+    if not os.path.exists(destination_folder):
+        os.makedirs(destination_folder)
     
-    with open(source_path + "/histograms.json", "w") as json_file:
-        json.dump(image_histograms, json_file)
+    with open(destination_folder + "/" + file_name, "w") as json_file:
+        json.dump(image_histograms, json_file, indent = 2)
 
 def create_histograms_for_all_images(folder_path):
     image_histograms = {'images': [] }
@@ -83,5 +83,3 @@ def read_image(file_path):
     image = cv2.imread(file_path, cv2.IMREAD_COLOR)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     return image, image.shape[0], image.shape[1]
-
-extract_histograms("../data/test", "../data/test")
