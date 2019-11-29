@@ -1,4 +1,4 @@
- def generate_lbp_histogram(image, row_count, column_count):
+def generate_lbp_histogram(image, row_count, column_count):
     histogram = init_histogram()    
     count = 0
     
@@ -117,9 +117,11 @@ def generate_binary_encoding(neighbour_pixels, center_pixel):
     return {'red': red_encoding, 'blue': blue_encoding, 'green': green_encoding}
     
 def compare_neighbour_to_center(neighbour, center):
-     return "1" if center["red"] >= neighbour["red"]  else "0",
-     "1" if center["green"] >= neighbour["green"] else "0",
-     "1" if center["blue"] >= neighbour["blue"]   else "0"
+     red_binary = "1" if center["red"] >= neighbour["red"]  else "0"
+     green_binary = "1" if center["green"] >= neighbour["green"] else "0"
+     blue_binary = "1" if center["blue"] >= neighbour["blue"]   else "0"
+     
+     return red_binary, green_binary, blue_binary
            
 def binary_encoding_to_int(encoding):
     red_int = 0
@@ -130,9 +132,9 @@ def binary_encoding_to_int(encoding):
     
     for i in range(bit_length):
         multiplier = 2 ** i
-        red_int += encoding['red'][i] * multiplier
-        blue_int += encoding['blue'][i] * multiplier
-        green_int += encoding['green'][i] * multiplier
+        red_int += int(encoding['red'][i]) * multiplier
+        blue_int += int(encoding['blue'][i]) * multiplier
+        green_int += int(encoding['green'][i]) * multiplier
     
     return red_int, green_int, blue_int
 

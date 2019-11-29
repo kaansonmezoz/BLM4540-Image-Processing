@@ -30,6 +30,10 @@ import json
 
 def extract_histograms(source_path, destination_path):
     image_histograms = create_histograms_for_all_images(source_path)
+    
+    if not os.path.exists(destination_path):
+        os.makedirs(destination_path)
+    
     with open(source_path + "/histograms.json") as json_file:
         json.dump(image_histograms, json_file)
 
@@ -38,6 +42,8 @@ def create_histograms_for_all_images(folder_path):
     image_paths = get_all_file_paths(folder_path)
     
     for i in range(len(image_paths)):
+        print(i)
+        
         histograms = create_histograms(image_paths[i])
         
         image_histograms['images'].append({
@@ -77,3 +83,5 @@ def read_image(file_path):
     image = cv2.imread(file_path, cv2.IMREAD_COLOR)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     return image, image.shape[0], image.shape[1]
+
+extract_histograms("../data", "../data/meta")
