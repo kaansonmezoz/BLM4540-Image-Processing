@@ -11,23 +11,20 @@ def generate_lbp_histogram(image, row_count, column_count):
     
 
 def init_histogram():
-    red, green, blue = [0] * 256, [0] * 256, [0] * 256     
-    return {'red': red, 'green': green, 'blue': blue }
+    return [0] * 256
 
 def get_pixel(image ,row, column):
-    red =  image[row][column][0]
-    green = image[row][column][1]
-    blue = image[row][column][2]
-    return {'red': red, 'green': green, 'blue': blue}
+    return image[row][column]
+
 
 def add_pixel_to_histogram(histogram, image, row, column):
     center_pixel = get_pixel(image, row + 1, column + 1)
     neighbours = extract_neighbour_pixels(image, row, column)
     encoding = generate_binary_encoding(neighbours, center_pixel)
     red, green, blue = binary_encoding_to_int(encoding)
-    histogram['red'][red] += 1
-    histogram['green'][green] += 1
-    histogram['blue'][blue] += 1
+    histogram += 1
+
+
 
 """
         
@@ -75,49 +72,29 @@ def extract_neighbour_pixels(image, center_row, center_column):
     return neighbour_pixels
 
 def generate_binary_encoding(neighbour_pixels, center_pixel):
-    red_encoding = ""
-    green_encoding = ""
-    blue_encoding = ""
+    encoding = ""
     
     for i in range(len(neighbour_pixels)):
-        red_binary, green_binary, blue_binary = compare_neighbour_to_center(neighbour_pixels[i], center_pixel)
-        
-        red_encoding = red_encoding + red_binary
-        green_encoding = green_encoding + green_binary
-        blue_encoding = blue_encoding + blue_binary
+        binary = compare_neighbour_to_center(neighbour_pixels[i], center_pixel)
+        encoding = encoding + binary
     
-    return {'red': red_encoding, 'blue': blue_encoding, 'green': green_encoding}
+    return encoding
     
 def compare_neighbour_to_center(neighbour, center):
-     red_binary = "1" if center["red"] >= neighbour["red"]  else "0"
-     green_binary = "1" if center["green"] >= neighbour["green"] else "0"
-     blue_binary = "1" if center["blue"] >= neighbour["blue"]   else "0"
-     
-     return red_binary, green_binary, blue_binary
-           
+     return "1" if center >= neighbour else "0"
+
 def binary_encoding_to_int(encoding):
-    red_int = 0
-    green_int = 0
-    blue_int = 0
+    value = 0
     
-    bit_length = len(encoding['red'])
+    bit_length = len(encoding)
     
     for i in range(bit_length):
         multiplier = 2 ** i
-        red_int += int(encoding['red'][i]) * multiplier
-        blue_int += int(encoding['blue'][i]) * multiplier
-        green_int += int(encoding['green'][i]) * multiplier
+        value += int(encoding[i]) * multiplier
     
-    return red_int, green_int, blue_int
+    return value
 
-def normalize_histogram(histogram, pixel_count):
-    red, green, blue = extract_color_from_lbp_histogram(histogram)
-
-    red[:] = [color_count / pixel_count for color_count in red]
-    green[:] = [color_count / pixel_count for color_count in green]
-    blue[:] = [color_count / pixel_count for color_count in blue]
+def normalize_histogram(histogram, total_pixel_count):
+    histogram[:] = [pixel_count / total_pixel_count for pixel_count in histogram]
     
     return histogram
-    
-def extract_color_from_lbp_histogram(histogram):
-    return histogram['red'], histogram['green'], histogram['blue']

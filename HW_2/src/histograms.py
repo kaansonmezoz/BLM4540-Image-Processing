@@ -79,7 +79,14 @@ def create_histograms(file_path):
     
     return { 'rgb':rgb_histogram, 'lbp': lbp_histogram }
     
-def read_image(file_path):
+def read_image_rgb(file_path):
+    return read_image(file_path, cv2.BGR2RGB)
+
+
+def read_image_grayscale(file_path):
+    return read_image(file_path, cv2.BGR2GRAY)
+    
+def read_image(file_path, read_flag):
     image = cv2.imread(file_path, cv2.IMREAD_COLOR)
-    image = cv2.cvtColor(image, cv2.BGR2RGB)
+    image = cv2.cvtColor(image, read_flag)
     return image, image.shape[0], image.shape[1]
