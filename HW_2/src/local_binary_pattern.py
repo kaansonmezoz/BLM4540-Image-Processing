@@ -7,31 +7,8 @@ def generate_lbp_histogram(image, row_count, column_count):
             add_pixel_to_histogram(histogram, image, center_row, center_column)
             count += 1
     
-    return histogram
+    return normalize_histogram(histogram, count)
     
-
-"""
-
-      x x x x x x x x                      
-    0,1,2,3,4,5,6,7,8,9
-   0
-   1
-   2
-   3
-   4
-   5
-   6
-   7
-   8
-   9
-    
-
-
-"""
-
-
-
-        
 
 def init_histogram():
     red, green, blue = [0] * 256, [0] * 256, [0] * 256     
@@ -52,11 +29,6 @@ def add_pixel_to_histogram(histogram, image, row, column):
     histogram['green'][green] += 1
     histogram['blue'][blue] += 1
 
-
-## Happy path burası uç durumları düşünmek lazım ...
-## Yani diyelim ki center pixel ya da center alacak pixel'in sol
-## tarafında herhangi bir şey yok o zaman ne yapacağız ?    
-    
 """
         
         Bir resmin pixeldekilerinin numaralandirilmasi
