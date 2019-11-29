@@ -1,26 +1,18 @@
-
-def generate_lbp_histogram(image, row_count, column_count):
+ def generate_lbp_histogram(image, row_count, column_count):
     histogram = init_histogram()    
+    count = 0
     
-    for i in range(row_count - 2):
-        for j in range(column_count - 2):
-            center_row = i + 1
-            center_column = j + 1
+    for center_row in range(1, row_count - 1):
+        for center_column in range(1, column_count - 1):
             add_pixel_to_histogram(histogram, image, center_row, center_column)
-    
-    ## Hala uç caseleri dusunmedim
-    ## Bunun dışında normalizasyon işlemi yapılması gerekiyor 
-    ## row_count - 2 'ye kadar gidilecek i ile yani max(i) = row_count - 3
-    ## i, i+1, i+2 olacak (row_count-3, row_count-2, row_count-1)
-    ## column_count - 2'ye kadar gidilecek, j ile yani max(j) = column_count - 3
-    ## j, j+1, j+2 olacak (column_count-3, column_count-2, column_count-1)
+            count += 1
     
     return histogram
     
 
 """
 
-                     
+      x x x x x x x x                      
     0,1,2,3,4,5,6,7,8,9
    0
    1
@@ -143,3 +135,15 @@ def binary_encoding_to_int(encoding):
         green_int += encoding['green'][i] * multiplier
     
     return red_int, green_int, blue_int
+
+def normalize_histogram(histogram, pixel_count):
+    red, green, blue = extract_color_from_lbp_histogram(histogram)
+
+    red[:] = [color_count / pixel_count for color_count in red]
+    green[:] = [color_count / pixel_count for color_count in green]
+    blue[:] = [color_count / pixel_count for color_count in blue]
+    
+    return histogram
+    
+def extract_color_from_lbp_histogram(histogram):
+    return histogram['red'], histogram['green'], histogram['blue']
