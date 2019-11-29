@@ -156,7 +156,7 @@ with open(TEST_IMAGES_PATH + "/result.json") as json_file:
 
 accuracy = {'accordion': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
             'dalmatian': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
-            'walter_lily': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
+            'water_lilly': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
             'dolphin': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
             'wild_cat': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
             'leopards': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'false': 0} },
@@ -166,12 +166,12 @@ accuracy = {'accordion': {'lbp': {'true': 0, 'false': 0}, 'rgb': {'true': 0, 'fa
 for i in range(len(results)):
     className = results[i]["path"].split("/")[-2]
     
-    if className in results[i]["lbp"]:
+    if any(className in result for result in results[i]["lbp"]):
         accuracy[className]["lbp"]["true"] +=1
     else:
         accuracy[className]["lbp"]["false"] +=1
         
-    if className in results[i]["rgb"]:
+    if any(className in result for result in results[i]["rgb"]):
         accuracy[className]["rgb"]["true"] +=1
     else:
         accuracy[className]["rgb"]["false"] +=1
