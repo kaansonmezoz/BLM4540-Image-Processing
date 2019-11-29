@@ -34,7 +34,7 @@ def extract_histograms(source_path, destination_path):
     if not os.path.exists(destination_path):
         os.makedirs(destination_path)
     
-    with open(source_path + "/histograms.json") as json_file:
+    with open(source_path + "/histograms.json", "w") as json_file:
         json.dump(image_histograms, json_file)
 
 def create_histograms_for_all_images(folder_path):
@@ -84,4 +84,4 @@ def read_image(file_path):
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     return image, image.shape[0], image.shape[1]
 
-extract_histograms("../data", "../data/meta")
+extract_histograms("../data/test", "../data/test")
