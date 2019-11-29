@@ -21,8 +21,8 @@ def add_pixel_to_histogram(histogram, image, row, column):
     center_pixel = get_pixel(image, row + 1, column + 1)
     neighbours = extract_neighbour_pixels(image, row, column)
     encoding = generate_binary_encoding(neighbours, center_pixel)
-    red, green, blue = binary_encoding_to_int(encoding)
-    histogram += 1
+    index = binary_encoding_to_int(encoding)
+    histogram[index] += 1
 
 
 
