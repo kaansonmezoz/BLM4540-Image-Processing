@@ -14,13 +14,14 @@ if not os.path.exists(os.path.dirname(os.path.realpath(TEST_IMAGES_PATH) + "/" +
 with open(TEST_IMAGES_PATH + "/" + HISTOGRAM_FILE_NAME) as json_file:
     images = json.load(json_file)['images']
     
-len(images)
-
-
 
 
 def calculate_manhattan_distance(histogram_1, histogram_2):
     manhattan_distance = 0
     
+    for i in len(histogram_1):
+        manhattan_distance = abs(histogram_1[i] - histogram_2[i])
+    
+    return manhattan_distance
     
     

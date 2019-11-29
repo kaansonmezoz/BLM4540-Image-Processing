@@ -81,5 +81,5 @@ def create_histograms(file_path):
     
 def read_image(file_path):
     image = cv2.imread(file_path, cv2.IMREAD_COLOR)
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    image = cv2.cvtColor(image, cv2.BGR2RGB)
     return image, image.shape[0], image.shape[1]
