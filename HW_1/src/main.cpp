@@ -12,6 +12,8 @@ typedef struct arguments Arguments;
 typedef struct cluster Cluster;
 typedef struct center Center;
 typedef struct label Label;
+typedef struct labelLinkedList LabelLinkedList;
+typedef struct labelNode LabelNode;
 
 struct arguments{
     char *imagePath;
@@ -45,13 +47,19 @@ struct cluster{
 };
 
 struct label{
-    Pixel **pixels; // linkli liste olacak; eklemeler başa yapılacak 
-    
-    struct {
-        uchar red;
-        uchar gree;
-        uchar blue;
-    }color; // bunun değerleri en son belli olacak.
+    uchar red;
+    uchar green;
+    uchar blue;
+};
+
+struct labelLinkedList{
+    LabelNode *head;
+    int size;
+};
+
+struct labelNode{
+    LabelNode *next;
+    Label *label;
 };
 
 Arguments getArguments(int, char **);
@@ -75,6 +83,7 @@ int areCentersChangesLessThanThreshold(Cluster **, Center **, int);
 double calculateCenterDifference(Center, Center);
 void setClusterPreviousCenters(Center **, Cluster **, int);
 void updatePixelColors(Image *, Cluster **);
+void connectComponents(Image *);
 
 const uchar  MAX_COLOR_VALUE = 255;
 const double DELTA_THRESHOLD = 0.000005;
@@ -201,6 +210,7 @@ Pixel **allocatePixelMatrix(int height, int width){
     for(int i = 0; i < height; i++){
         pixels[i] = (Pixel *) malloc(width * sizeof(Pixel));
         nullCheck(pixels[i]);
+        pixels[i]->label = NULL;
     }
 
     return pixels;
@@ -210,8 +220,10 @@ void segmentImage(Mat image, int k){
     Image *imageMatrix = createPixelMatrix(image);
     clusterPixelsByColor(imageMatrix, k);
     imshow("kMeans", image);
-
+    // write kMeans image
     // ardindan da labelling kısmi yapılmalı
+
+    connectComponents(imageMatrix);
 }
 
 void clusterPixelsByColor(Image *image, int k){
@@ -365,6 +377,152 @@ void updatePixelColors(Image *image, Cluster **clusters){
             *(pixel->green) = clusters[clusterIndex]->center.green;
             *(pixel->blue) = clusters[clusterIndex]->center.blue;
         }
+    }
+}
+
+
+void connectComponents(Image *image){
+    int rowCount = image->rowCount;
+    int columnCount = image->columnCount;
+    
+    printf("\n\nTotal pixels: %d", rowCount * columnCount);
+    
+    Pixel *pixel, *leftPixel, *upperPixel, *upperLeftPixel;
+    LabelLinkedList *labelList = createLabelLinkedList(); 
+    Label *label;
+
+    pixel = &(image->pixels[0][0]);
+    label = createLabelForPixel(pixel);
+    addLabelToList(labelList, label);
+    
+    for(int i = 0, j = 1; j < columnCount; j++){
+        leftPixel = &image->pixels[i][j-1];
+        pixel = &image->pixels[i][j];
+        
+        if(areTwoPixelsRelated(*leftPixel, *pixel)){
+            setLabelsWhenPixelsAreRelated(labelList, leftPixel, pixel);
+        }
+        else if(pixel->label == NULL){
+            label = createLabelForPixel(pixel);
+            addLabelToList(labelList, label);
+        }
+    }
+
+    for(int i = 1, j = 0; i < rowCount; i++){
+        upperPixel = &image->pixels[i-1][j];
+        pixel = &image->pixels[i][j];
+    
+        if(areTwoPixelsRelated(*upperPixel, *pixel)){
+            setLabelsWhenPixelsAreRelated(labelList, upperPixel, pixel);
+        }
+        else if(pixel->label == NULL){
+            label = createLabelForPixel(pixel);
+            addLabelToList(labelList, label);
+        }
+    }
+    
+    for(int i = 1; i < rowCount; i++){
+        for(int j = 1; j < columnCount; j++){
+            upperPixel = &image->pixels[i-1][j];
+            leftPixel = &image->pixels[i][j-1];
+            upperLeftPixel = &image->pixels[i-1][j-1];
+            pixel = &image->pixels[i][j];
+
+            if(areTwoPixelsRelated(*upperPixel, *pixel)){
+                printf("\n1");
+                setLabelsWhenPixelsAreRelated(labelList, upperPixel, pixel);
+            }
+            
+            if(areTwoPixelsRelated(*upperLeftPixel, *pixel)){
+                printf("\n2");
+                setLabelsWhenPixelsAreRelated(labelList, leftPixel, pixel);
+            }            
+            
+            if(areTwoPixelsRelated(*leftPixel, *pixel)){
+                printf("\n3");
+                setLabelsWhenPixelsAreRelated(labelList, leftPixel, pixel);
+            }
+            
+            printf("\n4");
+
+            if(pixel->label == NULL){
+                printf("\n5");
+                label = createLabelForPixel(pixel);
+                addLabelToList(labelList, label);
+            }
+        }
+    }
+
+    printf("\nTotal label count: %d", labelList->size);
+}
+
+LabelLinkedList *createLabelLinkedList(){
+    LabelLinkedList *linkedList = (LabelLinkedList *) malloc(sizeof(LabelLinkedList));
+    
+    nullCheck(linkedList);
+    linkedList->head = 0;
+    linkedList->size = 0;
+
+    return linkedList;
+}
+
+Label *createLabelForPixel(Pixel *pixel){
+    Label *label = (Label *) malloc(sizeof(Label));
+    nullCheck(label);
+    pixel->label = label;
+    
+    // TODO: bu degerler en son belirlenecek
+    label->blue = 0;
+    label->red = 0;
+    label->green = 0;
+
+    return label;
+}
+
+void addLabelToList(LabelLinkedList *list, Label *label){
+    LabelNode *node = (LabelNode *) malloc(sizeof(LabelNode));
+    nullCheck(node);
+
+    node->label = label;
+    node->next = list->head;
+    list->head = node->next;
+    list->size++;
+}
+
+int areTwoPixelsRelated(Pixel pixel1, Pixel pixel2){
+    int redDifference = *(pixel1.red) - *(pixel2.red);
+    int blueDifference = *(pixel1.blue) - *(pixel2.blue);
+    int greenDifference = *(pixel1.green) - *(pixel2.green);
+
+    double distance = sqrt(
+        (redDifference * redDifference) +
+        (blueDifference * blueDifference) +
+        (greenDifference * greenDifference)
+    );
+
+    return distance <= 0.001 ? 1 : 0;
+}
+
+void setLabelsWhenPixelsAreRelated(LabelLinkedList *linkedList, Pixel *pixel1, Pixel *pixel2){
+    printf("\n-1");
+    if(pixel1->label != NULL && pixel1->label == pixel2->label){
+        return;
+    }
+
+    if(pixel1->label == NULL && pixel2->label == NULL){
+        Label *label = createLabelForPixel(pixel1);
+
+    }
+    else if(pixel1->label == NULL){
+
+    }
+    else if(pixel2->label == NULL){
+    
+    }
+    else{
+        Label *sourceLabel = pixel1->label;
+        Label *destinationLabel = pixel2->label;
+
     }
 }
 
